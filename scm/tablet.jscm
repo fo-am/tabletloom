@@ -4,21 +4,17 @@
 
 (weave 
  ;; list of card rotations
- (list 'cw 'ccw 'cw 'cw 'ccw 'ccw 'cw 'cw 
+ (list 'ccw 'ccw 'cw 'cw 'ccw 'ccw 'cw 'cw 
        'ccw 'ccw 'cw 'cw 'ccw 'ccw 'cw 'cw)
  ;; initial tablet state
  (list 
-  (list 'a 'b 'c 'd)
-  (list 'a 'b 'c 'd)
-  (list 'a 'b 'c 'd)
-  (list 'a 'b 'c 'd)
-  (list 'a 'b 'c 'd)
-  (list 'a 'b 'c 'd)
-  (list 'a 'b 'c 'd)
-  (list 'a 'b 'c 'd)
-  (list 'a 'b 'c 'd)
-  (list 'a 'b 'c 'd)
-  ))
- 
-
-
+  (list 'A 'B 'c 'd)
+  (list 'a 'B 'C 'd)
+  (list 'a 'b 'C 'D)
+  (list 'A 'b 'c 'D)
+  (list 'A 'B 'c 'd)
+  (list 'a 'B 'C 'd)
+  (list 'a 'b 'C 'D)
+  (list 'A 'b 'c 'D)
+  (list 'A 'B 'c 'd)
+  (list 'a 'B 'C 'd))) 
