@@ -4,16 +4,16 @@
   (with-state
    (translate (vector 1000 0 0))
    (list 
-    (load-primitive "models/a.obj")
-    (load-primitive "models/b.obj")
-    (load-primitive "models/c.obj")
-    (load-primitive "models/d.obj")
-    (load-primitive "models/a-c.obj")
-    (load-primitive "models/b-c.obj")
-    (load-primitive "models/c-c.obj")
-    (load-primitive "models/d-c.obj"))))
+    (load-primitive "models/a-thick.obj")
+    (load-primitive "models/b-thick.obj")
+    (load-primitive "models/c-thick.obj")
+    (load-primitive "models/d-thick.obj")
+    (load-primitive "models/a-c-thick.obj")
+    (load-primitive "models/b-c-thick.obj")
+    (load-primitive "models/c-c-thick.obj")
+    (load-primitive "models/d-c-thick.obj"))))
 
-(define weft (with-state (translate (vector 1000 0 0)) (load-primitive "models/weft.obj")))
+(define weft (with-state (translate (vector 1000 0 0)) (load-primitive "models/weft-thick.obj")))
 
 (define (flip-normals) (pdata-map! (lambda (n) (vneg n)) "n"))
 (begin
