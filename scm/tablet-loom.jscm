@@ -1,0 +1,82 @@
+(define root (build-locator))
+
+(define thread-kernel
+  (with-state
+   (translate (vector 1000 0 0))
+   (list 
+    (load-primitive "models/a.obj")
+    (load-primitive "models/b.obj")
+    (load-primitive "models/c.obj")
+    (load-primitive "models/d.obj")
+    (load-primitive "models/a-c.obj")
+    (load-primitive "models/b-c.obj")
+    (load-primitive "models/c-c.obj")
+    (load-primitive "models/d-c.obj"))))
+
+(define weft (with-state (translate (vector 1000 0 0)) (load-primitive "models/weft.obj")))
+
+(define (flip-normals) (pdata-map! (lambda (n) (vneg n)) "n"))
+(begin
+(with-primitive (list-ref thread-kernel 4) (flip-normals))
+(with-primitive (list-ref thread-kernel 5) (flip-normals))
+(with-primitive (list-ref thread-kernel 6) (flip-normals))
+)
+(define (rotate-thread-tablet dir l)
+  (if (eq? dir 'cw)
+      (list
+       (list-ref l 1) (list-ref l 2) (list-ref l 3) (list-ref l 0))
+      (list
+       (list-ref l 3) (list-ref l 0) (list-ref l 1) (list-ref l 2))))
+
+(define (rotate-threads l dir)
+  (map 
+   (lambda (t) 
+     (rotate-thread-tablet dir t)) 
+   l))
+   
+(define (build-thread n thread)
+  (with-state 
+   (parent root)
+   (when (eq? thread 'a) (colour (vector 1 0 0)))
+   (when (eq? thread 'b) (colour (vector 0 1 0)))
+   (when (eq? thread 'c) (colour (vector 0 0 1)))
+   (when (eq? thread 'd) (colour (vector 1 1 0)))
+   (build-instance (list-ref thread-kernel n))))
+
+(define (weave-unit direction threads)
+  (let ((i (if (eq? direction 'cw) 0 4)))
+    (with-state
+     (parent root)
+     (build-instance weft))
+    (list
+     (build-thread (+ i 0) (list-ref threads 0))
+     (build-thread (+ i 1) (list-ref threads 1))
+     (build-thread (+ i 2) (list-ref threads 2))
+     (build-thread (+ i 3) (list-ref threads 3)))))
+
+(define (weave-tablet direction threads)
+  (cond
+   ((null? threads) ())
+   (else
+    (with-state
+     (translate (vector 0 0 (* (length threads) 2)))
+     (weave-unit direction (car threads)))
+    (weave-tablet direction (cdr threads)))))
+
+(define (weave instructions threads)
+  (cond
+   ((null? instructions) ())
+   (else
+    (translate (vector -2 0 0))
+    (weave-tablet (car instructions) (rotate-threads threads (car instructions)))
+    (weave (cdr instructions) 
+	   (rotate-threads threads (car instructions))))))
+
+(define (render)
+  (with-primitive root 
+		  (identity)
+		  (scale (vector 0.65 0.65 0.65))
+		  (rotate (vector 35 (* (time) 2) 0))
+		  (translate (vector 15 0 -10))))
+
+(every-frame (render))
