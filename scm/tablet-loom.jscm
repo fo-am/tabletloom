@@ -1,3 +1,6 @@
+;; -*- mode: scheme; -*-
+;; penelope tablet loom (c) 2017 foam kernow
+
 (define root (build-locator))
 
 (define thread-kernel
@@ -32,19 +35,34 @@
 (with-primitive (list-ref thread-kernel (+ 8 5)) (flip-normals))
 (with-primitive (list-ref thread-kernel (+ 8 6)) (flip-normals))
 )
+
+(define (list-wrap-ref l n)
+  (list-ref l (modulo n (length l))))
+
 (define (rotate-thread-tablet dir l)
   (if (eq? dir 'cw)
       (list
-       (list-ref l 1) (list-ref l 2) (list-ref l 3) (list-ref l 0))
+       (list-ref l 1) (list-ref l 2) 
+       (list-ref l 3) (list-ref l 0))
       (list
-       (list-ref l 3) (list-ref l 0) (list-ref l 1) (list-ref l 2))))
+       (list-ref l 3) (list-ref l 0) 
+       (list-ref l 1) (list-ref l 2))))
 
-(define (rotate-threads l dir)
-  (map 
-   (lambda (t) 
-     (rotate-thread-tablet dir t)) 
+(define (flip-direction dir)
+  (if (eq? dir 'cw) 'ccw 'cw))
+
+(define (flip-threads l)
+  (list
+   (list-ref l 1) (list-ref l 0) 
+   (list-ref l 3) (list-ref l 2)))
+
+(define (rotate-threads l dir orientation)
+  (index-map 
+   (lambda (i t) 
+     (let ((flip (list-wrap-ref orientation i)))
+       (rotate-thread-tablet (if (eq? flip 'left) dir (flip-direction dir)) t))) 
    l))
-   
+
 (define (build-thread n thread)
   (with-state 
    (parent root)
@@ -55,8 +73,8 @@
    (let ((thickened (if (or (eq? thread 'A) (eq? thread 'B) (eq? thread 'C) (eq? thread 'D)) 8 0)))     
      (build-instance (list-ref thread-kernel (+ n thickened))))))
 
-(define (weave-unit direction threads)
-  (let ((dir (if (eq? direction 'cw) 0 4)))
+(define (weave-unit direction threads orientation)
+  (let ((dir (if (eq? (if (eq? orientation 'left) direction (flip-direction direction)) 'cw) 0 4)))
     (with-state
      (parent root)
      (colour (vector 1 0.6 0.3))
@@ -67,23 +85,30 @@
      (build-thread (+ dir 2) (list-ref threads 2))
      (build-thread (+ dir 3) (list-ref threads 3)))))
 
-(define (weave-tablet direction threads)
+(define (weave-tablet direction threads orientation n)
   (cond
    ((null? threads) ())
    (else
     (with-state
-     (translate (vector 0 0 (* (length threads) 2)))
-     (weave-unit direction (car threads)))
-    (weave-tablet direction (cdr threads)))))
+     (translate (vector 0 0 (* (length threads) 1.8)))
+     (weave-unit direction (car threads) (list-wrap-ref orientation n)))
+    (weave-tablet direction (cdr threads) orientation (+ n 1)))))
 
-(define (weave instructions threads)
+(define (weave-wefts instructions threads orientation)
   (cond
    ((null? instructions) ())
    (else
-    (translate (vector -2 0 0))
-    (weave-tablet (car instructions) (rotate-threads threads (car instructions)))
-    (weave (cdr instructions) 
-	   (rotate-threads threads (car instructions))))))
+    (let ((new-threads (rotate-threads threads (car instructions) orientation)))
+      (translate (vector -2 0 0))
+      (weave-tablet (car instructions) new-threads orientation 0)
+      (weave-wefts (cdr instructions) new-threads orientation)))))
+
+(define (weave instructions threads orientation)
+  (weave-wefts instructions 
+	       (dbg (index-map (lambda (i threads) 
+		       (if (eq? (list-wrap-ref orientation i) 'left) threads (flip-threads threads)))
+			  threads))
+	       orientation))
 
 (define (render)
   (with-primitive root 
