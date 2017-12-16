@@ -65,12 +65,15 @@
 
 (define (build-thread n thread)
   (with-state 
+   (texture (load-texture "thread3.png"))
    (parent root)
    (when (or (eq? thread 'a) (eq? thread 'A)) (colour (vector 1 0 0)))
    (when (or (eq? thread 'b) (eq? thread 'B)) (colour (vector 0 1 0)))
    (when (or (eq? thread 'c) (eq? thread 'C)) (colour (vector 0 0 1)))
    (when (or (eq? thread 'd) (eq? thread 'D)) (colour (vector 1 1 0)))
-   (let ((thickened (if (or (eq? thread 'A) (eq? thread 'B) (eq? thread 'C) (eq? thread 'D)) 8 0)))     
+   (when (or (eq? thread 'e) (eq? thread 'E)) (colour (vector 0.2 0.2 0.2)))
+   (when (or (eq? thread 'f) (eq? thread 'F)) (colour (vector 1 1 1)))
+   (let ((thickened (if (or (eq? thread 'A) (eq? thread 'B) (eq? thread 'C) (eq? thread 'D) (eq? thread 'E) (eq? thread 'F)) 8 0)))     
      (build-instance (list-ref thread-kernel (+ n thickened))))))
 
 (define (weave-unit direction threads orientation)
