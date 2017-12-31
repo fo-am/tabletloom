@@ -132,10 +132,13 @@
    ((struct-eq? hist '(rr rr rr)) 'rr) ;; simple twist
    ((struct-eq? hist '(rr rr ll)) 'rs) ;; first turn -> straight
    ((struct-eq? hist '(ll ll rr)) 'ls) ;; first turn -> straight
+   ;; special case for coming out of a float, 
+   ;; ready to go straight to twist
    ((struct-eq? hist '(rr ll ll)) (if (eq? last 'sr) 'll 'sl)) 
-   ((struct-eq? hist '(ll rr rr)) (if (eq? last 'sl) 'rr 'sr))  
+   ((struct-eq? hist '(ll rr rr)) (if (eq? last 'sl) 'rr 'sr)) 
+   ;; special case for a float, as the direction matters
    ((struct-eq? hist '(rr ll rr)) (if (eq? last 'sr) 'ls 'sl))
-   ((struct-eq? hist '(ll rr ll)) (if (eq? last 'ls) 'sr 'rs))
+   ((struct-eq? hist '(ll rr ll)) (if (eq? last 'sl) 'rs 'sr))
    (else (display hist)(newline))))
 
 (define (weft-tension2 last hist)

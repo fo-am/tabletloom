@@ -1,5 +1,6 @@
 (load "tablet2.scm")
 
+
 (define (load-threads name)
   (with-state
    (translate (vector -1000 0 0))
@@ -26,7 +27,11 @@
    (pdata-map! 
     (lambda (n) 
       (vector (- (vx n)) (- (vy n)) (- (vz n))))
-    "n")))
+    "n")
+   (pdata-map! 
+    (lambda (n) 
+      (vector (- 1 (vx n)) (vy n) (vz n)))
+    "t")))
 
 (define (reverse-normals n)
   (reverse-n (list-ref (cadr (list-ref objs n)) 0))
@@ -40,7 +45,11 @@
    (pdata-map! 
     (lambda (n) 
       (vector (+ (vx n)) (- (vy n)) (- (vz n))))
-    "n")))
+    "n")
+   (pdata-map! 
+    (lambda (n) 
+      (vector (- 1 (vx n)) (vy n) (vz n)))
+    "t")))
 
 (define (reverse-normals2 n)
   (reverse-n2 (list-ref (cadr (list-ref objs n)) 0))
@@ -61,7 +70,7 @@
 
 (define (build-coloured element-name threads)
   (with-state
-   (colour (vector 0 0 1))
+   (texture (load-texture "../textures/thread.png"))
    (let ((obj (cadr (assoc element-name objs))))
      (thread->colour (list-ref threads 0))
      (build-instance (list-ref obj 0))
@@ -93,6 +102,7 @@
 	 (for-each 
 	  (lambda (element threads)
 	    (translate (vector 0 0 2))
+	    (texture (load-texture "../textures/thread.png"))
 	    (build-instance weft-obj)
 	    (build-threads element threads))
 	  weft threads)))
@@ -106,9 +116,9 @@
 (scale (vector 0.5 0.5 0.5))
  (weave-render
   (dbg (weave
- 	(list 'ccw 'ccw 'ccw 'cw 'cw 'cw 'cw 'ccw 'ccw 
+ 	(list 'ccw 'cw 'ccw 'cw 'ccw 'cw 'ccw 'ccw 'cw 'cw 'cw 'cw 'ccw 'ccw 
  	      'ccw 'ccw 'cw 'cw 'cw 'cw 'ccw 'ccw 'ccw 'ccw )
- 	'((y x x y) 
+ 	'((a a a a) 
  	  (x x y y) 
  	  (x y y x) 
  	  (y y x x) 
@@ -118,7 +128,7 @@
  	  (y y x x) 
  	  (y x x y) 	
  	  (x x y y) 	
- 	  (x y y x))
+ 	  (a a a a))
 	
  	'(right right left left left right right right left left))))
 
