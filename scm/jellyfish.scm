@@ -160,7 +160,7 @@
 	
 	(set! instructions (rotate-list instructions))
 	(msg instructions)
-	(destroy root)
+;;	(destroy root)
 	(set! root (build-locator))
 
 	(with-state
@@ -178,7 +178,7 @@
 			right right right 
 			left left left)))
 
-	 (weave-render temp)
+	 (weave-render-part temp)
 	 (set! thread (car (cadr temp)))
 	 (msg thread)))
   
