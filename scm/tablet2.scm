@@ -147,7 +147,7 @@
      (weft->structure2 last hist))
    last hist))
 
-(define (weave-tension2 weave)
+(define (weave-tension2 weave start)
   (define (_ last hist)
     (cond
      ((null? hist) '())
@@ -155,15 +155,15 @@
       (let ((weft (weft-tension2 last (car hist))))
 	(cons weft (_ weft (cdr hist)))))))
   
-  (_ (build-list (lambda (_) 'll) (length (car weave)))
-     (retrans weave)))
+  (_ start (retrans weave)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (weave instructions threads orientation)
   (list
    (weave-tension2
-    (instructions->structure instructions threads orientation))
+    (instructions->structure instructions threads orientation)
+    (map (lambda (o) (if (eq? o 'left) 'll 'rr)) orientation))
    (instructions->thread instructions threads orientation)))
     
   

@@ -108,50 +108,95 @@
 	  weft threads)))
       structure threads))))
 
+(define (weave-render-part desc)
+  (let ((structure (car desc))
+	(threads (cadr desc)))
+    (let ((weft (car structure))
+	  (threads (car threads)))
+      (translate (vector 2 0 0))
+      (with-state
+       (for-each 
+	(lambda (element threads)
+	  (translate (vector 0 0 2))
+	  (texture (load-texture "../textures/thread.png"))
+	  (build-instance weft-obj)
+	  (build-threads element threads))
+	weft threads)))))
+
 (define root (build-locator))
 
-(with-state
- (parent root)
- (translate (vector -4 0 -4))
-(scale (vector 0.5 0.5 0.5))
- (weave-render
-  (dbg (weave
- 	(list 'ccw 'cw 'ccw 'cw 'ccw 'cw 'ccw 'ccw 'cw 'cw 'cw 'cw 'ccw 'ccw 
- 	      'ccw 'ccw 'cw 'cw 'cw 'cw 'ccw 'ccw 'ccw 'ccw )
- 	'((a a a a) 
- 	  (x x y y) 
- 	  (x y y x) 
- 	  (y y x x) 
- 	  (y x x y) 
-	  
- 	  (x y y x) 
- 	  (y y x x) 
- 	  (y x x y) 	
- 	  (x x y y) 	
- 	  (a a a a))
-	
- 	'(right right left left left right right right left left))))
+(define (rotate-list l)
+  (append (cdr l) (list (car l))))
 
- ;; (weave-render
- ;;  (dbg (weave
- ;; 	(list 'ccw 'ccw 'ccw 'ccw 'cw 'cw 'cw 'cw 'ccw 'ccw 'cw 'ccw 'cw 'ccw)
- ;; 	'((x y z a) 
- ;; 	  (x y z a)
- ;; 	  ) 
-	
- ;; 	'(left
- ;; 	  right))))
+(define instructions (list 'cw 'cw 'cw 'cw 'cw 'cw 'cw 'cw 'ccw 'ccw 'cw 'cw 'cw 'ccw 'ccw 'ccw 'cw 'cw 'cw 'ccw 'ccw 'ccw 'cw 'cw 'cw))
+(define thread '((y y x x) 
+     (x y y x)
+     (x x y y) 
+     
+     (x x y y) 
+     (y x x y) 
+     (y y x x) 
+     
+     (y y x x) 
+     (x y y x) 
+     (x x y y) 	
+     
+     (x x y y) 
+     (y x x y) 
+     (y y x x)))
 
-)
+(define temp '())
+
+(define frame 50)
+(define frames-per-generate 50)
+
+(define (render-me)
+  (with-primitive 
+   root 
+   (translate (vector (* -0.98 (/ 1 frames-per-generate)) 0 0)))
+
+  (when (> frame frames-per-generate)
+	(set! frame 0)
+	
+	(set! instructions (rotate-list instructions))
+	(msg instructions)
+	(destroy root)
+	(set! root (build-locator))
+
+	(with-state
+	 (parent root)
+	 (translate (vector -9 0 2))
+	 (rotate (vector 180 0 0))
+	 (scale (vector 0.5 0.5 0.5))
+
+	 (set! temp 
+	       (weave
+		instructions
+		thread
+		'(right right right 
+			left left left 
+			right right right 
+			left left left)))
+
+	 (weave-render temp)
+	 (set! thread (car (cadr temp)))
+	 (msg thread)))
+  
+  (set! frame (+ frame 1))
+  )
 
 (define camera (build-locator))
 (lock-camera camera)
 (with-primitive 
  camera
- (rotate (vector -45 0 0))
+ (rotate (vector -35 0 0))
  (translate (vector 0 0 20)))
 
-(every-frame (with-primitive root (rotate (vector 0 0.3 0))))
+;;(render-me)
+
+(every-frame (render-me))
+
+;;(every-frame (with-primitive root (rotate (vector 0 0.3 0))))
 
 
 
