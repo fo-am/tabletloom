@@ -142,8 +142,8 @@
     
   (with-state
    (parent root)
-   (rotate (vector 40 0 0))
-   (translate (vector -15 -3 -15))
+   ;;(rotate (vector 40 0 0))
+   (translate (vector -15 0 -10))
    
    (weave-render
     (internal-weave
@@ -156,6 +156,12 @@
 
 (clear-colour (vector 1 1 1))
 
+(define (render)
+  (with-primitive root 
+		  (identity)
+		  (rotate (vector 40 (* (time) 4) 0))))
+
+(every-frame (render))
 
 
 
