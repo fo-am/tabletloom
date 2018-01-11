@@ -1,16 +1,18 @@
-(load "tablet2.scm")
+;; -*- mode: scheme; -*-
+;; penelope tablet loom (c) 2017 foam kernow
 
+(load "scm/tablet2.jscm")
 
 (define (load-threads name)
   (with-state
    (translate (vector -1000 0 0))
-   (list (load-obj (string-append "../models/" name "-a.obj"))
-	 (load-obj (string-append "../models/" name "-b.obj"))
-	 (load-obj (string-append "../models/" name "-c.obj"))
-	 (load-obj (string-append "../models/" name "-d.obj")))))
+   (list (load-primitive (string-append "models/" name "-a.obj"))
+	 (load-primitive (string-append "models/" name "-b.obj"))
+	 (load-primitive (string-append "models/" name "-c.obj"))
+	 (load-primitive (string-append "models/" name "-d.obj")))))
 
 (define weft-obj (with-state (translate (vector -1000 0 0)) 
-			     (load-obj "../models/weft-thick.obj")))
+			     (load-primitive "models/weft-thick.obj")))
 
 (define objs 
   (list 
@@ -65,12 +67,18 @@
   (cond 
    ((eq? thread 'x) (colour (vector 0.6 0.3 0.1)))
    ((eq? thread 'y) (colour (vector 1 1 1)))
-   ((eq? thread 'z) (colour (vector 1 0 1)))
-   ((eq? thread 'a) (colour (vector 1 1 0)))))
+   ((eq? thread 'z) (colour (vector 0.5 0 0)))
+   ((eq? thread 'a) (colour (vector 1 0.8 0)))
+   ((or (eq? thread 'a) (eq? thread 'A)) (colour (vector 1 0 0)))
+   ((or (eq? thread 'b) (eq? thread 'B)) (colour (vector 0 1 0)))
+   ((or (eq? thread 'c) (eq? thread 'C)) (colour (vector 0 0 1)))
+   ((or (eq? thread 'd) (eq? thread 'D)) (colour (vector 1 1 0)))
+   ((or (eq? thread 'e) (eq? thread 'E)) (colour (vector 0.2 0.2 0.2)))
+   (else (colour (vector 1 1 1)))))
 
 (define (build-coloured element-name threads)
   (with-state
-   (texture (load-texture "../textures/thread2.png"))
+   (texture (load-texture "textures/thread2.png"))
    (let ((obj (cadr (assoc element-name objs))))
      (thread->colour (list-ref threads 0))
      (build-instance (list-ref obj 0))
@@ -95,14 +103,14 @@
   (let ((structure (car desc))
 	(threads (cadr desc)))
     (with-state
-     (for-each
+     (map2
       (lambda (weft threads)
 	(translate (vector 2 0 0))
 	(with-state
-	 (for-each 
+	 (map2 
 	  (lambda (element threads)
 	    (translate (vector 0 0 2))
-	    (texture (load-texture "../textures/thread2.png"))
+	    (texture (load-texture "thread2.png"))
 	    (build-instance weft-obj)
 	    (build-threads element threads))
 	  weft threads)))
@@ -118,7 +126,7 @@
        (for-each 
 	(lambda (element threads)
 	  (translate (vector 0 0 2))
-	  (texture (load-texture "../textures/thread2.png"))
+	  (texture (load-texture "thread2.png"))
 	  (build-instance weft-obj)
 	  (build-threads element threads))
 	weft threads)))))
@@ -128,119 +136,25 @@
 (define (rotate-list l)
   (append (cdr l) (list (car l))))
 
-;;(define instructions (list 'cw 'cw 'cw 'cw 'cw 'cw 'cw 'cw 'ccw 'ccw 'ccw 'ccw 'ccw 'ccw 'ccw 'ccw))
-(define instructions (list 'cw 'cw 'cw 'cw 'ccw 'ccw 'ccw 'ccw 'cw 'cw 'cw 'cw 'ccw 'ccw 'ccw 'ccw))
-;(define instructions (list 'ccw 'ccw 'ccw 'ccw 'ccw 'ccw 'ccw 'ccw 'ccw 'cw 'cw 'cw 'cw 'cw 'cw 'cw 'cw))
-;(define instructions (list 'cw 'cw 'ccw 'ccw 'cw 'cw 'ccw 'ccw 'cw 'cw 'ccw 'ccw 'cw 'cw 'ccw 'ccw))
-;;(define instructions (list 'cw 'ccw 'cw 'ccw 'cw 'ccw 'cw 'ccw 'cw 'ccw 'cw 'ccw 'cw 'ccw 'cw 'ccw))
-
-(define thread 
-  '(
-; 1
-;    (x x y y) 
-;    (x x y y) 
-;    (x x y y) 
-;    (x x y y) 
-;    (x x y y) 
-;    (x x y y) 
-;    (x x y y) 
-;    (x x y y) 
-
-; 2
-;    (x x y y) 
-;    (y x x y)  
-;    (y y x x) 
-;    (x y y x) 
-;    (x x y y) 	
-;    (y x x y) 
-;    (y y x x) 
-;    (x y y x) 
-
-; 3
-;    (y x x y) 
-;    (y x x y) 
-;    (y x x y) 
-;    (y x x y) 
-;    (y x x y) 
-;    (y x x y) 
-;    (y x x y) 
-;    (y x x y) 
-
-(z z a a)
-(y y x x)
-(x y y x)
-(x x y y)
-(y x x y)
-
-(x y y x)
-(x x y y)
-(y x x y)
-(y y x x)
-
-(z z a a)
-
-    ))
-
-
-(define temp '())
-
-(define frame 51)
-(define frames-per-generate 50)
-(define pos 0)
-(define roots '())
-
-(define (render-me)
-  ;(with-primitive 
-  ; root 
-   ;;(translate (vector (* -0.98 (/ 1 frames-per-generate)) 0 0)))
-
-  (when (> frame frames-per-generate)
-	(set! pos (+ pos 1))
-	;;(set! frame 0)
-	
-	;(set! instructions (rotate-list instructions))
-	;(msg instructions)
-	(destroy root)
-	(set! root (build-locator))
-
-	
-	(with-state
-	 (parent root)
-	 (rotate (vector 20 45 180))
-	 (translate (vector -8 0 0))
-	 (scale (vector 0.5 0.5 0.5))
-	 
-	 (set! temp 
-	       (weave
-		instructions
-		thread
-		'(right right right right right
-		  left left left left left
-		  )))
-	 (msg (cdr temp))
-
-	 (weave-render temp)
-	 ;;(set! thread (car (cadr temp)))
-	 ;(msg thread)
-	 ))
-  
-  ;(set! frame (+ frame 1))
-  )
+(define (weave instructions thread orientation)
+  (destroy root)
+  (set! root (build-locator))
+    
+  (with-state
+   (parent root)
+   (rotate (vector 40 0 0))
+   (translate (vector -15 -3 -15))
+   
+   (weave-render
+    (internal-weave
+     instructions
+     (map2 
+      (lambda (thread ori) 
+	(if (eq? ori 'right) thread (flip-threads thread)))
+      thread orientation)
+     orientation))))
 
 (clear-colour (vector 1 1 1))
-
-(define camera (build-locator))
-(lock-camera camera)
-(with-primitive 
- camera
- (rotate (vector 0 0 0))
- (translate (vector 0 0 15)))
-
-;;(render-me)
-
-(every-frame (render-me))
-
-;;(every-frame (with-primitive root (rotate (vector 0 0.3 0))))
 
 
 

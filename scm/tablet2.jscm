@@ -1,3 +1,5 @@
+;; -*- mode: scheme; -*-
+;; penelope tablet loom (c) 2017 foam kernow
 ;; utils
 
 (define (list-wrap-ref l n)
@@ -31,7 +33,7 @@
    (list-ref threads 3) (list-ref threads 2)))
 
 (define (rotate-threads tablets dir orientation)
-  (map
+  (map2
    (lambda (t flip) 
      (rotate-thread t (if (eq? flip 'left) dir (flip-direction dir)))) 
    tablets orientation))
@@ -47,21 +49,68 @@
     (cons (weave-unit direction (car threads) (list-wrap-ref orientation n))
           (weave-tablet direction (cdr threads) orientation (+ n 1))))))
 
+(define (flip-orientation o)
+  (if (eq? o 'left) 'right 'left))
+
+(define (index-map fn l)
+  (define (_ i l)
+    (cond
+     ((null? l) '())
+     (else
+      (cons (fn i (car l)) (_ (+ i 1) (cdr l))))))
+  (_ 0 l))
+
+(define (instruction->orientation orientation instruction)
+  (cond
+   ((eq? instruction 'flip-all)
+    (map (lambda (o) (flip-orientation o)) orientation))
+   ((eq? instruction 'flip-even)
+    (index-map (lambda (i o) (if (zero? (modulo i 2)) (flip-orientation o) o))
+	       orientation))
+   ((eq? instruction 'flip-odd)
+    (index-map (lambda (i o) (if (not (zero? (modulo i 2))) (flip-orientation o) o))
+	       orientation))
+   ((eq? instruction 'flip-fhalf)
+    (index-map (lambda (i o) (if (< i (/ (length orientation) 2)) (flip-orientation o) o))
+	       orientation))
+   ((eq? instruction 'flip-shalf)
+    (index-map (lambda (i o) (if (> i (/ (length orientation) 2)) (flip-orientation o) o))
+	       orientation))
+   (else orientation)))
+
 (define (instructions->structure instructions threads orientation)
   (cond
    ((null? instructions) '())
    (else
-    (let ((new-threads (rotate-threads threads (car instructions) orientation)))
-      (cons (weave-tablet (car instructions) threads orientation 0)
-            (instructions->structure (cdr instructions) new-threads orientation))))))
+    (cond ;; weave instruction
+     ((or (eq? (car instructions) 'cw)
+	  (eq? (car instructions) 'ccw))
+      (let ((new-threads (rotate-threads threads (car instructions) orientation)))
+	(cons (weave-tablet (car instructions) threads orientation 0)
+	      (instructions->structure (cdr instructions) new-threads orientation))))
+     (else ;; flip instruction
+      (instructions->structure
+       (cdr instructions) threads
+       (instruction->orientation
+	orientation
+	(car instructions))))))))
 
 (define (instructions->thread instructions threads orientation)
   (cond
    ((null? instructions) '())
    (else
-    (let ((new-threads (rotate-threads threads (car instructions) orientation)))
-      (cons new-threads
-	    (instructions->thread (cdr instructions) new-threads orientation))))))
+    (cond ;; weave instruction
+     ((or (eq? (car instructions) 'cw)
+	  (eq? (car instructions) 'ccw))
+      (let ((new-threads (rotate-threads threads (car instructions) orientation)))
+	(cons new-threads
+	      (instructions->thread (cdr instructions) new-threads orientation))))
+     (else ;; flip instruction
+      (instructions->thread
+       (cdr instructions) threads
+       (instruction->orientation
+	orientation
+	(car instructions))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; broken version
@@ -83,7 +132,7 @@
    (else (display last)(newline))))
 
 (define (weft-tension weft last)
-  (map
+  (map2
    (lambda (weft last)
      (weft->structure weft last))
    weft last))
@@ -95,7 +144,7 @@
      (else
       (let ((weft (weft-tension (car weave) last)))
 	(cons weft (_ (cdr weave) weft))))))
-  (_ weave (build-list (lambda (_) 'll) (length (car weave)))))
+  (_ weave (build-list (length (car weave)) (lambda (_) 'll))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; working version
@@ -109,11 +158,11 @@
 (define (transpose l)
   (foldl
    (lambda (l r)     
-     (map
+     (map2
       (lambda (r e)
         (append r (list e)))
       r l))
-   (build-list (lambda (_) '()) (length (car l)))
+   (build-list (length (car l)) (lambda (_) '()))
    l))
 
 (define (retrans l)
@@ -128,21 +177,21 @@
 
 (define (weft->structure2 last hist)
   (cond
-   ((struct-eq? hist '(ll ll ll)) 'll) ;; simple twist
-   ((struct-eq? hist '(rr rr rr)) 'rr) ;; simple twist
-   ((struct-eq? hist '(rr rr ll)) 'rs) ;; first turn -> straight
-   ((struct-eq? hist '(ll ll rr)) 'ls) ;; first turn -> straight
+   ((struct-eq? hist (list 'll 'll 'll)) 'll) ;; simple twist
+   ((struct-eq? hist (list 'rr 'rr 'rr)) 'rr) ;; simple twist
+   ((struct-eq? hist (list 'rr 'rr 'll)) 'rs) ;; first turn -> straight
+   ((struct-eq? hist (list 'll 'll 'rr)) 'ls) ;; first turn -> straight
    ;; special case for coming out of a float, 
    ;; ready to go straight to twist
-   ((struct-eq? hist '(rr ll ll)) (if (eq? last 'sr) 'll 'sl)) 
-   ((struct-eq? hist '(ll rr rr)) (if (eq? last 'sl) 'rr 'sr)) 
+   ((struct-eq? hist (list 'rr 'll 'll)) (if (eq? last 'sr) 'll 'sl)) 
+   ((struct-eq? hist (list 'll 'rr 'rr)) (if (eq? last 'sl) 'rr 'sr)) 
    ;; special case for a float, as the direction matters
-   ((struct-eq? hist '(rr ll rr)) (if (eq? last 'sr) 'ls 'sl))
-   ((struct-eq? hist '(ll rr ll)) (if (eq? last 'sl) 'rs 'sr))
+   ((struct-eq? hist (list 'rr 'll 'rr)) (if (eq? last 'sr) 'ls 'sl))
+   ((struct-eq? hist (list 'll 'rr 'll)) (if (eq? last 'sl) 'rs 'sr))
    (else (display hist)(newline))))
 
 (define (weft-tension2 last hist)
-  (map
+  (map2
    (lambda (last hist)
      (weft->structure2 last hist))
    last hist))
@@ -159,7 +208,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (weave instructions threads orientation)
+(define (internal-weave instructions threads orientation)
   (list
    (weave-tension2
     (instructions->structure instructions threads orientation)

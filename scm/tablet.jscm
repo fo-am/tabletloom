@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; -*-
 ;; penelope tablet loom (c) 2017 foam kernow
 
-(load "scm/tablet-loom.jscm")
+(load "scm/tablet-loom2.jscm")
 
 (weave 
  ;; list of card rotations
@@ -9,17 +9,17 @@
        'ccw 'ccw 'ccw 'ccw 'cw 'cw 'cw 'cw)
  ;; thread positiion initial tablet state
  (list 
-  (list 'C 'C 'C 'C)
-  (list 'B 'A 'A 'B)
-  (list 'B 'B 'A 'A)
-  (list 'A 'B 'B 'D)
-  (list 'A 'B 'B 'D)
-  (list 'B 'B 'A 'A)
-  (list 'B 'A 'A 'B)
-  (list 'C 'C 'C 'C)
+  (list 'a 'a 'a 'a)
+  (list 'y 'x 'x 'y)
+  (list 'y 'y 'x 'x)
+  (list 'x 'y 'y 'z)
+  (list 'x 'y 'y 'z)
+  (list 'y 'y 'x 'x)
+  (list 'y 'x 'x 'y)
+  (list 'a 'a 'a 'a)
  )
   ;; starting orientation of the tablets
- (list 'left 'left 'left 'left 'right 'right 'right 'right)) 
+ (list 'left 'left 'left 'left 'right 'right 'right 'right))
 
 
 

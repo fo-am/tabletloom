@@ -65,7 +65,7 @@
 
 (define (build-thread n thread)
   (with-state 
-   (texture (load-texture "thread3.png"))
+   (texture (load-texture "thread2.png"))
    (parent root)
    (when (or (eq? thread 'a) (eq? thread 'A)) (colour (vector 1 0 0)))
    (when (or (eq? thread 'b) (eq? thread 'B)) (colour (vector 0 1 0)))
@@ -107,11 +107,16 @@
       (weave-wefts (cdr instructions) new-threads orientation)))))
 
 (define (weave instructions threads orientation)
-  (weave-wefts instructions 
-	       (dbg (index-map (lambda (i threads) 
-		       (if (eq? (list-wrap-ref orientation i) 'left) threads (flip-threads threads)))
-			  threads))
-	       orientation))
+  (with-state
+   (parent root)
+   (rotate (vector 40 0 0))
+   (translate (vector 17 -4 -14))
+
+   (weave-wefts instructions 
+		(dbg (index-map (lambda (i threads) 
+				  (if (eq? (list-wrap-ref orientation i) 'left) threads (flip-threads threads)))
+				threads))
+		orientation)))
 
 (define (render)
   (with-primitive root 
@@ -120,4 +125,4 @@
 		  (rotate (vector 35 (* (time) 2) 0))
 		  (translate (vector 15 0 -10))))
 
-(every-frame (render))
+;;(every-frame (render))
